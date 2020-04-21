@@ -2,9 +2,8 @@
 Multiprocessing functions - using multiprocessing (process based) module.
 """
 try:
-    from multiprocessing import cpu_count, Manager, Queue, Lock,\
-        managers, Process
-    Process;
+    from multiprocess import (cpu_count, Manager, Queue, Lock, managers,
+                              Process)
     use_multiprocessing = cpu_count() > 1
 except:
     use_multiprocessing = False

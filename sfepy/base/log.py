@@ -6,7 +6,7 @@ import six
 from six.moves import range
 
 try:
-    from multiprocessing import Process, Pipe
+    from multiprocess import (Process, Pipe)
 
 except ImportError:
     Process = None

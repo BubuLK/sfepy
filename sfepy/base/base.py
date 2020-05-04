@@ -93,7 +93,8 @@ def get_debug():
 
     return debug
 
-debug = get_debug()
+# debug = get_debug()
+debug = None
 
 def debug_on_error():
     """

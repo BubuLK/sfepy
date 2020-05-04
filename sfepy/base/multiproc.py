@@ -9,15 +9,16 @@ except ImportError:
 
 try:
     import sys
+    from multiprocess import set_start_method
     #
-    # Multiprocessing_proc implementation is currently broken on
-    # win32 platform.
+    # Current dill implementation default to 'fork' start method
+    # on darwin platforms which should be considered unsafe as it can
+    # lead to crashes of the subprocess. See bpo-33725.
     #
-    if sys.platform.startswith('win'):
-        use_multiprocessing_proc = False
-    else:
-        from multiprocess import cpu_count
-        use_multiprocessing_proc = cpu_count() > 1
+    if sys.platform == 'darwin':
+        set_start_method('spawn')
+    from multiprocess import cpu_count
+    use_multiprocessing_proc = cpu_count() > 1
 except:
     use_multiprocessing_proc = False
 

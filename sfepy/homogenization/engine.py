@@ -351,6 +351,16 @@ class HomogenizationWorkerMulti(HomogenizationWorker):
                 tasks.put(name)
 
         workers = []
+
+        #
+        # ToDo:
+        #   The last '__builtins__' entries cause pickling errors ;(
+        #   (co je to za položku)
+        #   Do we really need them here?
+        #
+        problem.conf._raw['_raw']['__builtins__'].popitem()
+        problem.conf._raw['__builtins__'].popitem()
+
         for ii in range(self.num_workers):
             args = (tasks, lock, remaining, numdeps, inverse_deps,
                     problem, options, post_process_hook, req_info,

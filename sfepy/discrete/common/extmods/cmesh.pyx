@@ -22,6 +22,25 @@ cdef class CConnectivity:
 
         self.offset = 0
 
+    # Pickling support.
+    def __getstate__(self):
+        # print(f"__getstate__: {self.__str__()}")
+        return (
+            self.indices,
+            self.offsets,
+            self.num, self.n_incident, self.offset
+            )
+
+    def __getnewargs__(self):
+        print(f"__getstate__: {self.__str__()} (num: {self.num}, n_incident: {self.n_incident})")
+        return (self.num, self.n_incident)
+        
+    def __setstate__(self, state):
+        self.indices, self.offsets, \
+        self.num, self.n_incident, self.offset = state
+        print(f"__setstate__: {self.__str__()}")
+        
+        
     cdef _set_conn(self, MeshConnectivity *conn):
         # This cannot be in __cinit__, as a C pointer needs to be passed
         # around.
@@ -148,6 +167,43 @@ cdef class CMesh:
             '3_8' : 4,
         }
 
+    # Pickling support.
+    def __getstate__(self):
+    # ToDo: do this in more 'clever' way (?)
+        print(f"__getstate__: {self.__str__()}")
+        return (
+            self.coors,
+            self.vertex_groups,
+            self.cell_types,
+            self.cell_groups,
+            self.conns,
+            self.entities,
+            self.n_coor, self.dim, self.n_el, self.tdim,
+            self.num,
+            self.face_oris,
+            self.edge_oris,
+            self.facet_oris,
+            self.key_to_index
+            )
+   
+    def __setstate__(self, state):
+        mesh_init(self.mesh)
+        
+        self.coors, \
+        self.vertex_groups, \
+        self.cell_types, \
+        self.cell_groups, \
+        self.conns, \
+        self.entities, \
+        self.n_coor, self.dim, self.n_el, self.tdim, \
+        self.num, \
+        self.face_oris, \
+        self.edge_oris, \
+        self.facet_oris, \
+        self.key_to_index = state
+        
+        print(f"__setstate__: {self.__str__()}")
+        
     def __dealloc__(self):
         mesh_free(self.mesh)
 

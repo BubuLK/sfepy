@@ -28,6 +28,7 @@ else:
     PY3 = True
     basestr = str
 
+
 def get_debug():
     """
     Utility function providing ``debug()`` function.
@@ -36,12 +37,12 @@ def get_debug():
         import IPython
 
     except ImportError:
-        debug = None
+        debug_fce = None
 
     else:
         old_excepthook = sys.excepthook
 
-        def debug(frame=None, frames_back=1):
+        def debug_fce(frame=None, frames_back=1):
             if IPython.__version__ >= '0.11':
                 from IPython.core.debugger import Pdb
 
@@ -50,7 +51,7 @@ def get_debug():
 
                 except NameError:
                     from IPython.frontend.terminal.embed \
-                         import InteractiveShellEmbed
+                        import InteractiveShellEmbed
                     ip = InteractiveShellEmbed()
 
                 colors = ip.colors
@@ -74,11 +75,11 @@ def get_debug():
 
             Pdb(colors).set_trace(frame)
 
-    if debug is None:
+    if debug_fce is None:
         import pdb
-        debug = lambda frame=None, frames_back=1: pdb.set_trace()
+        debug_fce = lambda frame=None, frames_back=1: pdb.set_trace()
 
-    debug.__doc__ = """
+    debug_fce.__doc__ = """
     Start debugger on line where it is called, roughly equivalent to::
 
         import pdb; pdb.set_trace()
@@ -91,10 +92,12 @@ def get_debug():
     With IPython, one can say in what frame the debugger can stop.
     """
 
-    return debug
+    debug_fce.__name__ = "debug_fce"
+    return debug_fce
 
-# debug = get_debug()
-debug = None
+
+debug = get_debug()
+
 
 def debug_on_error():
     """
@@ -122,6 +125,7 @@ def debug_on_error():
                 pdb.post_mortem(tb)
 
     sys.excepthook = except_hook
+
 
 def import_file(filename, package_name=None, can_reload=True):
     """
@@ -165,6 +169,7 @@ def import_file(filename, package_name=None, can_reload=True):
 
     return mod
 
+
 def try_imports(imports, fail_msg=None):
     """
     Try import statements until one succeeds.
@@ -198,30 +203,35 @@ def try_imports(imports, fail_msg=None):
 
     return locals()
 
+
 def python_shell(frame=0):
     import code
-    frame = sys._getframe(frame+1)
+    frame = sys._getframe(frame + 1)
     code.interact(local=frame.f_locals)
+
 
 def ipython_shell(frame=0):
     from IPython.terminal.embed import InteractiveShellEmbed
     ipshell = InteractiveShellEmbed()
 
-    ipshell(stack_depth=frame+1)
+    ipshell(stack_depth=frame + 1)
+
 
 def shell(frame=0):
     """
     Embed an IPython (if available) or regular Python shell in the given frame.
     """
     try:
-        ipython_shell(frame=frame+2)
+        ipython_shell(frame=frame + 2)
 
     except ImportError:
-        python_shell(frame=frame+1)
+        python_shell(frame=frame + 1)
+
 
 def assert_(condition, msg='assertion failed!'):
     if not condition:
         raise ValueError(msg)
+
 
 ##
 # c: 06.04.2005, r: 05.05.2008
@@ -245,6 +255,7 @@ def pause(msg=None):
                                     ff.co_name, f.f_lineno))
     spause()
 
+
 ##
 # Silent pause.
 # 18.02.2005, c
@@ -265,6 +276,7 @@ def spause(msg=None):
     ch = getch()
     if ch == 'q':
         sys.exit()
+
 
 ##
 # 02.01.2005
@@ -417,7 +429,7 @@ class Struct(object):
             if hasattr(self, key):
                 sval = getattr(self, key)
                 if issubclass(sval.__class__, Struct) and \
-                       issubclass(val.__class__, Struct):
+                        issubclass(val.__class__, Struct):
                     setattr(self, key, sval + val)
             else:
                 setattr(self, key, val)
@@ -442,7 +454,7 @@ class Struct(object):
                 aux = "\n" + str(val)
                 aux = aux.replace("\n", "\n    ")
                 ss += "  %s:\n%s\n" % (key, aux[1:])
-        return(ss.rstrip())
+        return (ss.rstrip())
 
     ##
     # 09.07.2007, c
@@ -495,6 +507,8 @@ class Struct(object):
             other.name = get_default(name, self.name + '_copy')
 
         return other
+
+
 #
 # 12.07.2007, c
 class IndexedStruct(Struct):
@@ -508,6 +522,7 @@ class IndexedStruct(Struct):
     # 12.07.2007, c
     def __setitem__(self, key, val):
         setattr(self, key, val)
+
 
 ##
 # 14.07.2006, c
@@ -538,7 +553,7 @@ class Container(Struct):
                     ii = len(self.names)
 
             elif not isinstance(ii, int):
-                    raise ValueError('bad index type! (%s)' % type(ii))
+                raise ValueError('bad index type! (%s)' % type(ii))
 
             if ii >= len(self.names):
                 self._objs.append(obj)
@@ -558,7 +573,7 @@ class Container(Struct):
             elif not isinstance(ii, int):
                 raise ValueError('bad index type! (%s)' % type(ii))
 
-            return  self._objs[ii]
+            return self._objs[ii]
 
         except (IndexError, ValueError) as msg:
             raise IndexError(msg)
@@ -687,6 +702,7 @@ class Container(Struct):
 
         return out
 
+
 ##
 # 30.11.2004, c
 # 01.12.2004
@@ -731,7 +747,7 @@ class OneTypeList(list):
             aux = aux.replace("\n", "\n  ")
             ss += aux[1:] + "\n"
         ss += "]"
-        return(ss)
+        return (ss)
 
     def find(self, name, ret_indx=False):
         for ii, item in enumerate(self):
@@ -749,6 +765,7 @@ class OneTypeList(list):
 
     def get_names(self):
         return [ii.name for ii in self]
+
 
 class Output(Struct):
     """
@@ -927,9 +944,12 @@ class Output(Struct):
 
     def get_output_prefix(self):
         return self._prefix[:-1]
+
     prefix = property(get_output_prefix, set_output_prefix)
 
+
 output = Output('sfepy:')
+
 
 def configure_output(options):
     """
@@ -948,6 +968,7 @@ def configure_output(options):
     output.set_output(filename=output_log_name, quiet=not output_screen,
                       combined=output_screen and (output_log_name is not None))
 
+
 def print_structs(objs):
     """Print Struct instances in a container, works recursively. Debugging
     utility function."""
@@ -961,6 +982,7 @@ def print_structs(objs):
     else:
         print(objs)
 
+
 def iter_dict_of_lists(dol, return_keys=False):
     for key, vals in six.iteritems(dol):
         for ii, val in enumerate(vals):
@@ -968,6 +990,7 @@ def iter_dict_of_lists(dol, return_keys=False):
                 yield key, ii, val
             else:
                 yield val
+
 
 ##
 # 19.07.2005, c
@@ -1024,6 +1047,7 @@ def dict_to_struct(*args, **kwargs):
 
     return out
 
+
 def structify(obj):
     """
     Convert a (nested) dict `obj` into a (nested) Struct.
@@ -1034,8 +1058,10 @@ def structify(obj):
             out.__dict__[key] = structify(val)
     return out
 
+
 def is_string(var):
     return isinstance(var, basestr)
+
 
 def is_integer(var):
     if PY3:
@@ -1043,6 +1069,7 @@ def is_integer(var):
 
     else:
         return isinstance(var, (int, long))
+
 
 ##
 # 23.01.2006, c
@@ -1052,15 +1079,18 @@ def is_sequence(var):
         return False
     return isinstance(var, Sequence)
 
+
 ##
 # 17.10.2007, c
 def is_derived_class(cls, parent):
     return issubclass(cls, parent) and (cls is not parent)
 
+
 ##
 # 23.10.2007, c
 def insert_static_method(cls, function):
     setattr(cls, function.__name__, staticmethod(function))
+
 
 ##
 # 23.10.2007, c
@@ -1071,11 +1101,14 @@ def insert_method(instance, function):
         meth = MethodType(function, instance, type(instance))
     setattr(instance, function.__name__, meth)
 
+
 def use_method_with_name(instance, method, new_name):
     setattr(instance, new_name, method)
 
+
 def insert_as_static_method(cls, name, function):
     setattr(cls, name, staticmethod(function))
+
 
 def find_subclasses(context, classes, omit_unnamed=False, name_attr='name'):
     """Find subclasses of the given classes in the given context.
@@ -1113,6 +1146,7 @@ def find_subclasses(context, classes, omit_unnamed=False, name_attr='name'):
             pass
     return table
 
+
 def load_classes(filenames, classes, package_name=None, ignore_errors=False,
                  name_attr='name'):
     """
@@ -1139,6 +1173,7 @@ def load_classes(filenames, classes, package_name=None, ignore_errors=False,
 
     return table
 
+
 def update_dict_recursively(dst, src, tuples_too=False,
                             overwrite_by_none=True):
     """
@@ -1160,6 +1195,7 @@ def update_dict_recursively(dst, src, tuples_too=False,
     dst : dict
         The destination dictionary.
     """
+
     def tuplezip(a):
         if isinstance(a[0], dict) and isinstance(a[1], dict):
             return update_dict_recursively(a[0], a[1], True)
@@ -1173,7 +1209,7 @@ def update_dict_recursively(dst, src, tuples_too=False,
                 continue
 
             if tuples_too and isinstance(dst[key], tuple) \
-                   and isinstance(src[key], tuple):
+                    and isinstance(src[key], tuple):
                 out = map(tuplezip, zip(src[key], dst[key]))
                 out = tuple(out)
                 dst[key] = out[:len(dst[key])]
@@ -1183,6 +1219,7 @@ def update_dict_recursively(dst, src, tuples_too=False,
             dst[key] = src[key]
 
     return dst
+
 
 def edit_tuple_strings(str_tuple, old, new, recur=False):
     """
@@ -1216,6 +1253,7 @@ def edit_tuple_strings(str_tuple, old, new, recur=False):
         new_tuple.append(item)
 
     return tuple(new_tuple)
+
 
 def edit_dict_strings(str_dict, old, new, recur=False):
     """
@@ -1261,6 +1299,7 @@ def edit_dict_strings(str_dict, old, new, recur=False):
 
     return new_dict
 
+
 def invert_dict(d, is_val_tuple=False, unique=True):
     """
     Invert a dictionary by making its values keys and vice versa.
@@ -1303,6 +1342,7 @@ def invert_dict(d, is_val_tuple=False, unique=True):
 
     return di
 
+
 def remap_dict(d, map):
     """
     Utility function to remap state dict keys according to var_map.
@@ -1313,11 +1353,11 @@ def remap_dict(d, map):
 
     return out
 
+
 ##
 # 24.08.2006, c
 # 05.09.2006
 def dict_from_keys_init(keys, seq_class=None):
-
     if seq_class is None:
         return {}.fromkeys(keys)
 
@@ -1326,11 +1366,13 @@ def dict_from_keys_init(keys, seq_class=None):
         out[key] = seq_class()
     return out
 
+
 ##
 # 16.10.2006, c
 def dict_extend(d1, d2):
     for key, val in six.iteritems(d1):
         val.extend(d2[key])
+
 
 def get_subdict(adict, keys):
     """
@@ -1338,9 +1380,11 @@ def get_subdict(adict, keys):
     """
     return dict((key, adict[key]) for key in keys if key in adict)
 
+
 def set_defaults(dict_, defaults):
     for key, val in six.iteritems(defaults):
         dict_.setdefault(key, val)
+
 
 ##
 # c: 12.03.2007, r: 04.04.2008
@@ -1355,6 +1399,7 @@ def get_default(arg, default, msg_if_none=None):
 
     return out
 
+
 ##
 # c: 28.04.2008, r: 28.04.2008
 def get_default_attr(obj, attr, default, msg_if_none=None):
@@ -1367,6 +1412,7 @@ def get_default_attr(obj, attr, default, msg_if_none=None):
         raise ValueError(msg_if_none)
 
     return out
+
 
 def get_arguments(omit=None):
     """Get a calling function's arguments.
@@ -1389,6 +1435,7 @@ def get_arguments(omit=None):
 
     return args
 
+
 def check_names(names1, names2, msg):
     """Check if all names in names1 are in names2, otherwise raise IndexError
     with the provided message msg.
@@ -1398,6 +1445,7 @@ def check_names(names1, names2, msg):
     if both != names:
         missing = ', '.join(ii for ii in names.difference(both))
         raise IndexError(msg % missing)
+
 
 ##
 # c: 27.02.2008, r: 27.02.2008
@@ -1419,12 +1467,14 @@ def select_by_names(objs_all, names, replace=None, simple=True):
                 objs[key] = new_val
     return objs
 
+
 def ordered_iteritems(adict):
     keys = list(adict.keys())
     order = nm.argsort(keys)
     for ii in order:
         key = keys[ii]
         yield key, adict[key]
+
 
 def dict_to_array(adict):
     """
@@ -1445,6 +1495,7 @@ def dict_to_array(adict):
         out[key] = val
 
     return out
+
 
 def as_float_or_complex(val):
     """

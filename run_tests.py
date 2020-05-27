@@ -26,11 +26,14 @@ import os.path as op
 from argparse import ArgumentParser, RawDescriptionHelpFormatter
 
 import sfepy
-if sfepy.top_dir not in sys.path: sys.path.append(sfepy.top_dir)
+
+if sfepy.top_dir not in sys.path:
+    sys.path.append(sfepy.top_dir)
 
 from sfepy.base.conf import ProblemConf, get_standard_keywords
 from sfepy.base.base import output
 from sfepy.base.timing import Timer
+
 
 class OutputFilter(object):
 
@@ -61,6 +64,7 @@ class OutputFilter(object):
     def stop(self):
         sys.stdout = self.stdout
         self.stdout = None
+
 
 def run_test(conf_name, options, ifile):
     from sfepy.base.ioutils import ensure_path
@@ -129,6 +133,7 @@ def run_test(conf_name, options, ifile):
 
     return n_fail, n_total, timer.total
 
+
 def wrap_run_tests(options):
     def run_tests(stats, dir_name, filenames):
         filenames = [filename for filename in sorted(filenames)
@@ -150,6 +155,7 @@ def wrap_run_tests(options):
 
     return run_tests
 
+
 def get_dir(default):
     if sfepy.in_source_tree:
         out = default
@@ -157,23 +163,25 @@ def get_dir(default):
         out = op.normpath(op.join(sfepy.data_dir, default))
     return out
 
+
 helps = {
-    'dir' : 'directory with tests [default: %(default)s]',
-    'out_dir' : 'directory for storing test results and temporary files'
-    ' [default: %(default)s]',
-    'raise_on_error' : 'raise silenced exceptions to see what was wrong',
+    'dir': 'directory with tests [default: %(default)s]',
+    'out_dir': 'directory for storing test results and temporary files'
+               ' [default: %(default)s]',
+    'raise_on_error': 'raise silenced exceptions to see what was wrong',
     'debug':
-    'automatically start debugger when an exception is raised',
-    'filter-none' : 'do not filter any messages',
-    'filter-less' : 'filter output (suppress all except test messages)',
-    'filter-more' : 'filter output (suppress all except test result messages)',
-    'print-doc' : 'print the docstring of this file (howto write new tests)',
+        'automatically start debugger when an exception is raised',
+    'filter-none': 'do not filter any messages',
+    'filter-less': 'filter output (suppress all except test messages)',
+    'filter-more': 'filter output (suppress all except test result messages)',
+    'print-doc': 'print the docstring of this file (howto write new tests)',
 }
+
 
 def main():
     parser = ArgumentParser(description=__doc__,
                             formatter_class=RawDescriptionHelpFormatter
-    )
+                            )
     parser.add_argument("-v", "--version", action="version",
                         version="%(prog)s " + sfepy.__version__)
     parser.add_argument("--print-doc",
@@ -212,7 +220,8 @@ def main():
 
     if options.debug:
         options.raise_on_error = True
-        from sfepy.base.base import debug_on_error; debug_on_error()
+        from sfepy.base.base import debug_on_error;
+        debug_on_error()
 
     run_tests = wrap_run_tests(options)
     stats = [0, 0, 0, 0.0]
@@ -229,6 +238,7 @@ def main():
           % (stats[0], stats[3], stats[1], stats[2]))
 
     return stats[1]
+
 
 if __name__ == '__main__':
     sys.exit(main())

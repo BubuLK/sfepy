@@ -358,6 +358,7 @@ class HomogenizationWorkerMulti(HomogenizationWorker):
         #   (co je to za položku)
         #   Do we really need them here?
         #
+        import dill
         problem.conf._raw['_raw']['__builtins__'].popitem()
         problem.conf._raw['__builtins__'].popitem()
 
@@ -368,10 +369,14 @@ class HomogenizationWorkerMulti(HomogenizationWorker):
                     time_tag, micro_chunk_tab, str(ii + 1))
             w = multiproc.Process(target=self.calculate_req_multi,
                                   args=args)
+            # aa = problem.domain.geom_els['3_4'].poly_space
+            # ab = dill.loads(dill.dumps(problem.domain.geom_els['3_4'].poly_space))
+            aa = problem.domain.cmesh
+            ab = dill.loads(dill.dumps(problem.domain.cmesh))
             w.start()
             workers.append(w)
 
-        # block until all workes are terminated
+        # block until all workers are terminated
         for w in workers:
             w.join()
 

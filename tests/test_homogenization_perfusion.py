@@ -1,25 +1,37 @@
 from __future__ import print_function
 from __future__ import absolute_import
 import six
-input_name = '../examples/homogenization/perfusion_micro.py'
 
+import sys
+import os.path as op
+
+from sfepy import data_dir
 from sfepy.base.testing import TestCommon
+
+input_name = '../examples/homogenization/perfusion_micro.py'
+#
+# ToDo:
+#       - make whole examples tree 'searchable' (run_tests.py)
+#
+sys.path.append(op.join(data_dir, 'examples', 'homogenization'))
+
 
 class Test(TestCommon):
 
     @staticmethod
     def from_conf(conf, options):
-        return Test(conf = conf, options = options)
+        return Test(conf=conf, options=options)
 
-    def compare_scalars(s1, s2, l1= 's1', l2 = 's2',
-                        allowed_error = 1e-8):
+    def compare_scalars(s1, s2, l1='s1', l2='s2',
+                        allowed_error=1e-8):
 
-        diff  = abs(s1 - s2)
-        TestCommon.report( '|%s - %s|: %e' % (l1, l2, diff))
+        diff = abs(s1 - s2)
+        TestCommon.report('|%s - %s|: %e' % (l1, l2, diff))
         if diff > allowed_error:
             return False
         else:
             return True
+
     compare_scalars = staticmethod(compare_scalars)
 
     def test_solution(self):
@@ -27,7 +39,7 @@ class Test(TestCommon):
         from sfepy.base.base import Struct
         from sfepy.base.conf import ProblemConf, get_standard_keywords
         from sfepy.homogenization.homogen_app import HomogenizationApp
-        #import numpy as nm
+        # import numpy as nm
         import os.path as op
 
         ok = True
@@ -47,14 +59,14 @@ class Test(TestCommon):
                          solve_not=False)
 
         test_conf.options['output_dir'] = './output-tests'
-        app = HomogenizationApp(test_conf, options, 'homogen:' )
+        app = HomogenizationApp(test_conf, options, 'homogen:')
         coefs = app()
 
         aerr = 1.0e-9
-        self.report('allowed error: abs = %e' % (aerr, ))
+        self.report('allowed error: abs = %e' % (aerr,))
 
         # G^A = G^B ?
-        ok = ok and self.compare_scalars(coefs.GA, coefs.GB,\
+        ok = ok and self.compare_scalars(coefs.GA, coefs.GB, \
                                          'G^A', 'G^B', aerr)
 
         # F^{A+} + F^{B+} = -1/h \int_{\partial_+Y_m} ?
@@ -73,13 +85,13 @@ class Test(TestCommon):
 
         # E = -F ?
         ok = ok and self.compare_scalars(coefs.EmA, -coefs.FmA,
-                                         'E^{A-}', '-F^{A-}',aerr)
+                                         'E^{A-}', '-F^{A-}', aerr)
         ok = ok and self.compare_scalars(coefs.EpA, -coefs.FpA,
-                                         'E^{A+}', '-F^{A+}',aerr)
+                                         'E^{A+}', '-F^{A+}', aerr)
         ok = ok and self.compare_scalars(coefs.EmB, -coefs.FmB,
-                                         'E^{B-}', '-F^{B-}',aerr)
+                                         'E^{B-}', '-F^{B-}', aerr)
         ok = ok and self.compare_scalars(coefs.EpB, -coefs.FpB,
-                                         'E^{B+}', '-F^{B+}',aerr)
+                                         'E^{B+}', '-F^{B+}', aerr)
 
         # S = S_test ?
         coefsd = coefs.to_dict()

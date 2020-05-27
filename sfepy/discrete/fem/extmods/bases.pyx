@@ -12,6 +12,9 @@ from sfepy.discrete.common.extmods._fmfield cimport FMField
 
 from sfepy.discrete.common.extmods.types cimport int32, float64, complex128
 
+cdef extern from 'string.h':
+    void *memcpy(void *dest, void *src, size_t n)
+
 cdef extern from 'common.h':
     void *pyalloc(size_t size)
     void pyfree(void *pp)
@@ -68,6 +71,7 @@ cdef extern from 'lagrange.h':
           'eval_basis_lagrange'(FMField *out, FMField *coors, int32 diff,
                                 void *_ctx)
 
+
 cdef class CLagrangeContext:
 
     cdef LagrangeContext *ctx
@@ -79,6 +83,11 @@ cdef class CLagrangeContext:
     cdef readonly np.ndarray e_coors_max # Auxiliary buffer.
     cdef readonly np.ndarray base1d # Auxiliary buffer.
     cdef readonly np.ndarray mbfg # Auxiliary buffer.
+
+    # Pickling support.
+    cdef readonly np.ndarray _nodes
+    cdef readonly np.ndarray _ref_coors
+    cdef readonly np.ndarray _mtx_i
 
     property is_bubble:
 
@@ -125,6 +134,11 @@ cdef class CLagrangeContext:
         cdef np.ndarray[float64, mode='c', ndim=2] _e_coors_max
         cdef np.ndarray[float64, mode='c', ndim=1] _base1d
         cdef np.ndarray[float64, mode='c', ndim=2] _mbfg
+
+        # Pickling support.
+        self._nodes = nodes
+        self._ref_coors = ref_coors
+        self._mtx_i = mtx_i
 
         ctx = self.ctx = <LagrangeContext *> pyalloc(sizeof(LagrangeContext))
 
@@ -198,6 +212,39 @@ cdef class CLagrangeContext:
         ctx.i_max = i_max
         ctx.newton_eps = newton_eps
 
+    # Pickling support.
+    cdef bytes get_data(self):
+        return <bytes>(<char *>self.ctx)[:sizeof(LagrangeContext)]
+   
+    cdef void set_data(self, bytes data):
+        pyfree(self.ctx)
+        self.ctx = <LagrangeContext *> pyalloc(sizeof(LagrangeContext))
+        if self.ctx is NULL:
+            raise MemoryError()
+        memcpy(self.ctx, <char *>data, sizeof(LagrangeContext))
+
+    def __getstate__(self):
+        ctx = self.get_data()
+        return (self._nodes, self._ref_coors, self._mtx_i, ctx)
+
+    def __getnewargs_ex__(self):
+        return (
+            (),
+            {
+                'nodes': self._nodes,
+                'ref_coors': self._ref_coors,
+                'mtx_i': self._mtx_i}
+            )
+            
+    def __setstate__(self, state):
+        a, b, c, ctx = state
+        self.set_data(ctx)
+
+    # def __reduce__(self):
+    #     state = self.get_data()
+    #     return (rebuild_CLagrangeContext,
+    #             (state, self._nodes, self._ref_coors, self._mtx_i))
+    
     def __dealloc__(self):
         pyfree(self.ctx)
 
